@@ -7,7 +7,7 @@ on:
         description: 'repository'
         required: true
         type: string
-        default: 'clone-repository.test'
+        default: 'lsnova/clone-repository.test'
       copy_list:
         description: 'list of files and directories to clone'
         required: true
