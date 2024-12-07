@@ -17,7 +17,7 @@ on:
         description: 'list of files and directories to clone'
         required: true
         type: string
-        default: 'new_file.txt README.md'
+        default: 'new-file.txt README.md'
       directory_name:
         description: 'directory name'
         required: true
