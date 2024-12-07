@@ -37,7 +37,7 @@ jobs:
           git config --global user.email "noreply@lsn.io"
           git config --global user.name "LSN GitHub Action"
           
-          git clone https://lsnpatryks:${{ secrets.PERSONAL_TOKEN }}@github.com/${REPOSITORY} ${DIRECTORY_NAME}
+          git clone https://${{ secrets.USERNAME }}:${{ secrets.PERSONAL_TOKEN }}@github.com/${REPOSITORY} ${DIRECTORY_NAME}
                     
           for FILE in `echo $COPY_LIST`; do
             echo "processing $FILE [cloning]"
