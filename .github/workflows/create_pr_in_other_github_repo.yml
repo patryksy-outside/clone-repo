@@ -8,6 +8,11 @@ on:
         required: true
         type: string
         default: 'lsnova/clone-repository.test'
+      repository_branch:
+        description: 'repository branch'
+        required: true
+        type: string
+        default: 'master'      
       copy_list:
         description: 'list of files and directories to clone'
         required: true
@@ -28,6 +33,7 @@ jobs:
       - name: clone script
         env:
           REPOSITORY: ${{ inputs.repository }}
+          REPOSITORY_BRANCH: ${{ inputs.repository_branch }}
           DIRECTORY_NAME: ${{ inputs.directory_name }}
           COPY_LIST: ${{ inputs.copy_list }}
           GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
@@ -37,7 +43,7 @@ jobs:
           git config --global user.email "noreply@lsn.io"
           git config --global user.name "LSN GitHub Action"
           
-          git clone https://${{ secrets.USERNAME }}:${{ secrets.PERSONAL_TOKEN }}@github.com/${REPOSITORY} ${DIRECTORY_NAME}
+          git clone  -b ${REPO_BRANCH} https://${{ secrets.USERNAME }}:${{ secrets.PERSONAL_TOKEN }}@github.com/${REPOSITORY} ${DIRECTORY_NAME}
                     
           for FILE in `echo $COPY_LIST`; do
             echo "processing $FILE [cloning]"
@@ -59,5 +65,5 @@ jobs:
           git commit -m "new release ${RELEASE_NUMBER}"
           git push --set-upstream origin release/${RELEASE_NUMBER}
           
-          gh pr create --body "source code of release #${RELEASE_NUMBER}" --title "release #${RELEASE_NUMBER}" --head "release/${RELEASE_NUMBER}" --base "master"
+          gh pr create --body "source code of release #${RELEASE_NUMBER}" --title "release #${RELEASE_NUMBER}" --head "release/${RELEASE_NUMBER}" --base "${REPOSITORY_BRANCH}"
           rm -rf ${DIRECTORY_NAME}
