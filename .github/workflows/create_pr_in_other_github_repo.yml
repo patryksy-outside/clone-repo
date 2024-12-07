@@ -1,0 +1,63 @@
+name: copy to another repo with PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'repository'
+        required: true
+        type: string
+        default: 'clone-repository.test'
+      copy_list:
+        description: 'list of files and directories to clone'
+        required: true
+        type: string
+        default: 'new_file.txt README.md'
+      directory_name:
+        description: 'directory name'
+        required: true
+        type: string
+        default: '__other__'
+
+
+jobs:
+  clone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: clone script
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+          DIRECTORY_NAME: ${{ inputs.directory_name }}
+          COPY_LIST: ${{ inputs.copy_list }}
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+        run: |
+          rm -rf ${DIRECTORY_NAME}
+          
+          git config --global user.email "noreply@lsn.io"
+          git config --global user.name "LSN GitHub Action"
+          
+          git clone https://lsnpatryks:${{ secrets.PERSONAL_TOKEN }}@github.com/${REPOSITORY} ${DIRECTORY_NAME}
+                    
+          for FILE in `echo $COPY_LIST`; do
+            echo "processing $FILE [cloning]"
+            if [ -f "$FILE" ] || [ -d "$FILE" ]; then
+              echo "$FILE exists"            
+              DIRNAME=$(dirname $FILE)
+              rm -rf ${DIRECTORY_NAME}/${DIRNAME}/${FILE}
+              mkdir -p ${DIRECTORY_NAME}/${DIRNAME}/
+              cp $FILE ${DIRECTORY_NAME}/${DIRNAME}/
+            fi
+          done
+                
+          cd ${DIRECTORY_NAME}
+          NUMBER_OF_PR=$(gh pr list -s all -L 1 --json number  | jq '.[0].number // 0')
+          RELEASE_NUMBER=$((NUMBER_OF_PR + 1))
+          
+          git checkout -b release/${RELEASE_NUMBER}
+          git add .
+          git commit -m "new release ${RELEASE_NUMBER}"
+          git push --set-upstream origin release/${RELEASE_NUMBER}
+          
+          gh pr create --body "source code of release #${RELEASE_NUMBER}" --title "release #${RELEASE_NUMBER}" --head "release/${RELEASE_NUMBER}" --base "main"
+          rm -rf ${DIRECTORY_NAME}
